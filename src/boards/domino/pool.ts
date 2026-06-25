@@ -130,6 +130,89 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
     trigger: { kind: 'snapshot', metric: 'chainLength', mod: 5, cmp: '==', value: 0 },
     effects: [{ op: 'mul_mult', args: [2] }],
   },
+  {
+    id: 'the_count',
+    name: 'O Conde',
+    rarity: 'uncommon',
+    cost: 6,
+    slotType: 'standard',
+    // +2 de mult por metade da peca jogada igual ao numero mais comum da cobra.
+    trigger: { kind: 'always' },
+    effects: [
+      { op: 'add_mult_per', args: [2], query: { target: 'entity', key: 'contains', equalsSnapshot: 'mostCommonNumber' } },
+    ],
+  },
+]
+
+// Modificadores de EVENTO (PARTE 2c): reagem a momentos da rodada, nao a jogadas.
+export const DOMINO_POOL_EVENTS: Modifier[] = [
+  {
+    id: 'ferrolho',
+    name: 'Ferrolho',
+    rarity: 'uncommon',
+    cost: 6,
+    slotType: 'standard',
+    // Ao travar: converte o "trancado" em recurso (dinheiro + 1 jogada de volta).
+    trigger: { kind: 'always' },
+    effects: [],
+    hooks: [
+      {
+        on: 'lock',
+        effects: [
+          { op: 'add_money', args: [6] },
+          { op: 'add_resource', resource: 'plays', args: [1] },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'economia_circular',
+    name: 'Economia Circular',
+    rarity: 'uncommon',
+    cost: 6,
+    slotType: 'standard',
+    // Fim de rodada: +1 de dinheiro por redraw nao usado (jogo de juros).
+    trigger: { kind: 'always' },
+    effects: [],
+    hooks: [{ on: 'round_end', effects: [{ op: 'add_money_per_resource', resource: 'redraws', args: [1] }] }],
+  },
+  {
+    id: 'aposta',
+    name: 'Aposta',
+    rarity: 'rare',
+    cost: 8,
+    slotType: 'standard',
+    // Inicio de rodada: paga 3. Cada jogada: +1 de mult por dinheiro retido (escala arriscada).
+    trigger: { kind: 'always' },
+    effects: [{ op: 'add_mult_run', runField: 'money', args: [1] }],
+    hooks: [{ on: 'round_start', effects: [{ op: 'add_money', args: [-3] }] }],
+  },
+]
+
+// Modificadores de REGRA (PARTE 2c): mudam board/loja. O comportamento completo e
+// aplicado pelo board/loja (helpers em engine/events.ts); a integracao no loop jogavel
+// chega no M5 (CLI).
+export const DOMINO_POOL_RULE: Modifier[] = [
+  {
+    id: 'canhoto',
+    name: 'Canhoto',
+    rarity: 'uncommon',
+    cost: 6,
+    slotType: 'standard',
+    trigger: { kind: 'always' },
+    effects: [],
+    rule: { kind: 'two_ends_play' },
+  },
+  {
+    id: 'pente_fino',
+    name: 'Pente-Fino',
+    rarity: 'common',
+    cost: 4,
+    slotType: 'standard',
+    trigger: { kind: 'always' },
+    effects: [],
+    rule: { kind: 'shop_thinning', amount: 2 },
+  },
 ]
 
 // Modificadores de MEMORIA DE RODADA (PARTE 2b): dependem do que veio antes na rodada.
@@ -172,9 +255,11 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
   },
 ]
 
-/** O pool completo disponivel ate aqui (portavel + topologico + memoria). */
+/** O pool completo (portavel + topologico + memoria + eventos + regras). 21 mods. */
 export const DOMINO_POOL: Modifier[] = [
   ...DOMINO_POOL_PORTABLE,
   ...DOMINO_POOL_TOPOLOGICAL,
   ...DOMINO_POOL_MEMORY,
+  ...DOMINO_POOL_EVENTS,
+  ...DOMINO_POOL_RULE,
 ]

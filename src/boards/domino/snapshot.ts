@@ -15,5 +15,23 @@ export function makeSnapshot(chain: Tile[], ends: readonly [number, number] | nu
     },
     endsValues: (): number[] => (ends ? [ends[0], ends[1]] : []),
     chainLength: (): number => chain.length,
+    mostCommonNumber: (): number | null => {
+      const counts = new Map<number, number>()
+      for (const t of chain) {
+        for (const n of new Set([t.low, t.high])) {
+          counts.set(n, (counts.get(n) ?? 0) + 1)
+        }
+      }
+      let best: number | null = null
+      let bestCount = 0
+      for (const [n, c] of counts) {
+        // desempate deterministico: maior contagem, depois menor numero.
+        if (c > bestCount || (c === bestCount && best !== null && n < best)) {
+          best = n
+          bestCount = c
+        }
+      }
+      return best
+    },
   }
 }

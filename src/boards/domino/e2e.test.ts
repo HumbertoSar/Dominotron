@@ -13,6 +13,7 @@ import {
   isBlindWon,
   makeRng,
   resolve,
+  resolveEvent,
   runStateView,
   settleBlind,
   type Modifier,
@@ -50,6 +51,9 @@ function playOneBlind(seed: number, active: Modifier[]): RunState {
   const rng = makeRng(seed)
   let memory = initialRoundMemory()
 
+  // Evento de inicio de rodada (ex.: Aposta paga a entrada).
+  run = applyDeltas(run, resolveEvent('round_start', active, runStateView(config, run)))
+
   while ((run.resources.plays ?? 0) > 0 && !dominoBoard.isRoundOver(board)) {
     const action = dominoBoard.greedyBaseAgent(board)
     const { state, context } = dominoBoard.apply(board, action)
@@ -61,6 +65,13 @@ function playOneBlind(seed: number, active: Modifier[]): RunState {
     run = applyDeltas(run, { resources: { plays: -(context.consumes.plays ?? 0) } })
     memory = advanceRoundMemory(memory, context) // lembra esta jogada para a proxima
   }
+
+  // Travou (acabou com peca na mao)? Dispara o evento de lock.
+  if (board.hand.length > 0 && dominoBoard.isRoundOver(board)) {
+    run = applyDeltas(run, resolveEvent('lock', active, runStateView(config, run)))
+  }
+  // Evento de fim de rodada (ex.: Economia Circular paga juros de recursos).
+  run = applyDeltas(run, resolveEvent('round_end', active, runStateView(config, run)))
   return run
 }
 
@@ -83,6 +94,13 @@ describe('run headless end-to-end (DoD do M3)', () => {
     const limpo = playOneBlind(2026, []).roundScore
     const comMods = playOneBlind(2026, DOMINO_POOL).roundScore
     expect(comMods).toBeGreaterThan(limpo)
+  })
+
+  it('evento de fim de rodada paga juros de recursos (Economia Circular)', () => {
+    const econ = DOMINO_POOL.filter((m) => m.id === 'economia_circular')
+    const run = playOneBlind(2026, econ)
+    // greedy nunca usa redraws -> 3 restantes -> round_end paga 1 por redraw = 3.
+    expect(run.money).toBe(3)
   })
 
   it('o ciclo de blind fecha: com pontuacao suficiente, vence e paga recompensa', () => {
