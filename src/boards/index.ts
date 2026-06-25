@@ -7,5 +7,10 @@
 
 export { dominoBoard } from './domino/board'
 export type { DominoState, DominoAction, PlayAction } from './domino/board'
-export { DOMINO_POOL_PORTABLE, DOMINO_POOL_TOPOLOGICAL, DOMINO_POOL } from './domino/pool'
+export {
+  DOMINO_POOL_PORTABLE,
+  DOMINO_POOL_TOPOLOGICAL,
+  DOMINO_POOL_MEMORY,
+  DOMINO_POOL,
+} from './domino/pool'
 export * as dominoTiles from './domino/tiles'

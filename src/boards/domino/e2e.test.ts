@@ -6,8 +6,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   addRoundScore,
+  advanceRoundMemory,
   applyDeltas,
   createRun,
+  initialRoundMemory,
   isBlindWon,
   makeRng,
   resolve,
@@ -46,16 +48,18 @@ function playOneBlind(seed: number, active: Modifier[]): RunState {
   }
   let board = dominoBoard.init(seed, { resources: config.resources })
   const rng = makeRng(seed)
+  let memory = initialRoundMemory()
 
   while ((run.resources.plays ?? 0) > 0 && !dominoBoard.isRoundOver(board)) {
     const action = dominoBoard.greedyBaseAgent(board)
     const { state, context } = dominoBoard.apply(board, action)
     board = state
 
-    const { trace, deltas } = resolve(context, active, runStateView(config, run), rng)
+    const { trace, deltas } = resolve(context, active, runStateView(config, run), rng, memory)
     run = addRoundScore(run, trace.finalScore)
     run = applyDeltas(run, deltas) // dinheiro de mods (ex.: Lustro)
     run = applyDeltas(run, { resources: { plays: -(context.consumes.plays ?? 0) } })
+    memory = advanceRoundMemory(memory, context) // lembra esta jogada para a proxima
   }
   return run
 }

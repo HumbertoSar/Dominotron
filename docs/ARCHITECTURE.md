@@ -101,6 +101,7 @@ ao Resolver (e atualizar este doc):
 | `add_mult_per(query, n)` | `mult += n * count(match)` |
 | `add_base_tag(tag, k)` | `chips += k * valueOf(tag)` ← quantidade vinda do **valor** de uma tag (M3 2a) |
 | `add_mult_tag(tag, k)` | `mult += k * valueOf(tag)` (M3 2a) |
+| `mul_mult_pow(field, b)` | `mult *= b ^ memory[field]` ← escala por um contador de **memória de rodada** (M3 2b) |
 
 A `query` das ops `_per` tem três alvos: `tag` (casa `ctx.tags`), `entity` (casa tags das
 entities) e `snapshot` (conta na cobra via `snapshot.count(numero)`; o número pode vir fixo
@@ -108,9 +109,16 @@ ou do valor de uma tag, via `fromTag` — ex.: `closes_number`). Os alvos `snaps
 ops **topológicas** (M3 2a).
 
 `trigger` (`Predicate`) é uma árvore declarativa sobre: tags presentes em `ctx.tags`,
-contagens de entities, campos de `RunStateView`, e métricas do `snapshot`. Exemplos:
-`always`, `has_tag('is_double')`, `tag_value('value_sum') >= 9`, `snapshot(chainLength mod 5 == 0)`
-(M3 2a), `and(...)`, `or(...)`, `not(...)`.
+contagens de entities, campos de `RunStateView`, métricas do `snapshot`, e a **memória de
+rodada**. Exemplos: `always`, `has_tag('is_double')`, `tag_value('value_sum') >= 9`,
+`snapshot(chainLength mod 5 == 0)` (M3 2a), `tag_vs_memory('value_sum' > prevValueSum)`,
+`memory_flag(prevWasDouble)`, `memory(doubles >= 2)` (M3 2b), `and(...)`, `or(...)`, `not(...)`.
+
+> **Memória de rodada (M3 2b).** Até aqui o Resolver pontuava cada jogada isolada. Combos
+> como Crescente/Gêmeos/Motor Espelho precisam lembrar a rodada, então `resolve` recebe um
+> parâmetro opcional `memory: RoundMemory` (estado ANTES da jogada). O chamador (run loop)
+> avança a memória com `advanceRoundMemory` após cada jogada. O Resolver continua puro: lê a
+> memória, nunca a muta.
 
 > **Por que fechada.** A DSL declarativa permite: configs diffáveis e versionáveis;
 > segurança (nada executa código arbitrário); e **análise estática** — os testes T4/T5/T8
