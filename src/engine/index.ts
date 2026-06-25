@@ -10,6 +10,8 @@
 
 export * from './types'
 export * from './config'
+export * from './board'
+export * from './vocabulary'
 export { resolve } from './resolve'
 export { evaluatePredicate, compare } from './predicate'
 export { makeRng, hashSeed } from './rng'
