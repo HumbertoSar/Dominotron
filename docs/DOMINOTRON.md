@@ -65,7 +65,11 @@ as ops `_per` iterarem. `snapshot` (BoardQuery) expõe: `chainLength()`, `endsVa
 
 | i | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | … | 24 |
 |---|---|---|---|---|---|---|---|---|---|----|---|----|
-| target | 18 | 23 | 30 | 39 | 51 | 67 | 87 | 113 | 147 | 191 | … | ~6400 |
+| target | 18 | 23 | 30 | 40 | 51 | 67 | 87 | 113 | 147 | 191 | … | ~7516 |
+
+> Valores derivados estritamente de `round(18 * 1.30^(i-1))` — a fórmula é a fonte de
+> verdade. (Correções vs. rascunho: `i=4` era 39, `i=24` era ~6400; ambos arredondados
+> errado à mão.)
 
 **Teste de sanidade (T3):** jogando dominó "limpo" (greedy de base, **zero** modificadores),
 o teto por rodada fica em ~50–70 pontos e **não cresce** (mult sempre 1). Logo a curva o

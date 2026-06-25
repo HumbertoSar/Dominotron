@@ -1,6 +1,7 @@
 // Fixtures sinteticas para os testes do engine. O M1 nao tem board ainda (Lei 11),
 // entao fabricamos ScoringContext / RunStateView / Modifier a mao.
 
+import type { RunConfig } from './config'
 import type {
   BoardQuery,
   Effect,
@@ -68,4 +69,31 @@ export function makeMod(id: string, effects: Effect[], trigger: Predicate = { ki
 /** Atalho para montar tags. */
 export function tag(key: string, value?: number): Tag {
   return value === undefined ? { key } : { key, value }
+}
+
+/** Um pequeno pool de modificadores (uma de cada raridade) para os testes de loja. */
+export function makePool(): Modifier[] {
+  return [
+    makeMod('heavyweight', [{ op: 'add_base', args: [8] }]), // common
+    makeMod('numerologo', [{ op: 'add_mult', args: [3] }], { kind: 'always' }), // ver abaixo
+    makeMod('serpente', [{ op: 'mul_mult', args: [2] }]),
+  ].map((m, i) => ({ ...m, rarity: (['common', 'uncommon', 'rare'] as const)[i] ?? 'common' }))
+}
+
+/** Config no shape do DOMINOTRON.md, com defaults da espec. */
+export function makeConfig(overrides: Partial<RunConfig> = {}): RunConfig {
+  return {
+    board: 'domino',
+    resources: { plays: 8, redraws: 3 },
+    thresholdCurve: { base: 18, growth: 1.3, antes: 8, blindsPerAnte: 3 },
+    economy: {
+      blindReward: { small: 3, big: 4, boss: 5 },
+      interestPer: 5,
+      interestCap: 5,
+      prices: { common: 4, uncommon: 6, rare: 8 },
+    },
+    slots: 5,
+    modifiers: makePool(),
+    ...overrides,
+  }
 }
