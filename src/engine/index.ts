@@ -6,6 +6,8 @@
 // REGRA (Lei 3): este pacote NAO importa I/O, DOM, nem relogio/RNG global.
 // Se voce se pegar escrevendo logica de dominó aqui, parou — isso pertence a src/boards.
 //
-// Conteudo real chega no M1 (Resolver + Trace) e M2 (Run + Economy + Rng).
+// Conteudo presente: M1 (Resolver + Trace). Por vir: M2 (Run + Economy + Rng).
 
-export {}
+export * from './types'
+export { resolve } from './resolve'
+export { evaluatePredicate, compare } from './predicate'
