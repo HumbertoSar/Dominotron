@@ -3,6 +3,9 @@
 // Tudo que muda entre dominó / sudoku / Tetris / memoria vive aqui, e SO aqui.
 // Implementar um jogo novo = implementar a interface BoardModule. O motor nao muda.
 //
-// O primeiro modulo — dominó (docs/DOMINOTRON.md) — chega no M3.
+// Modulo presente: dominó (M3). A espec esta em docs/DOMINOTRON.md.
 
-export {}
+export { dominoBoard } from './domino/board'
+export type { DominoState, DominoAction, PlayAction } from './domino/board'
+export { DOMINO_POOL_PORTABLE } from './domino/pool'
+export * as dominoTiles from './domino/tiles'
