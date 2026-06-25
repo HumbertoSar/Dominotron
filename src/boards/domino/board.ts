@@ -122,15 +122,20 @@ function applyAction(
 
   let chain: Tile[]
   let ends: [number, number]
+  // closes_number = o novo numero exposto por esta jogada (tag topologica).
+  let closesNumber: number
   if (state.ends === null) {
     chain = [played]
     ends = [played.low, played.high]
+    closesNumber = played.high
   } else if (action.side === 'left') {
     chain = [played, ...state.chain]
     ends = [otherHalf(played, state.ends[0]), state.ends[1]]
+    closesNumber = ends[0]
   } else {
     chain = [...state.chain, played]
     ends = [state.ends[0], otherHalf(played, state.ends[1])]
+    closesNumber = ends[1]
   }
 
   // Compra 1 peca do saco para repor (ate o saco esvaziar).
@@ -140,7 +145,7 @@ function applyAction(
 
   const context: ScoringContext = {
     baseValue: tilePips(played),
-    tags: tileTags(played),
+    tags: [...tileTags(played), { key: 'closes_number', value: closesNumber }],
     entities: [tileEntity(played)],
     snapshot: makeSnapshot(chain, ends),
     consumes: { plays: 1 },
@@ -233,6 +238,8 @@ const TAG_VOCABULARY: TagSpec[] = [
   { key: 'is_even', type: 'flag' },
   { key: 'is_odd', type: 'flag' },
   { key: 'contains', type: 'int' },
+  // Topologica (M3 2a): o numero exposto pela jogada.
+  { key: 'closes_number', type: 'int' },
 ]
 
 export const dominoBoard: BoardModule<DominoState, DominoAction> = {

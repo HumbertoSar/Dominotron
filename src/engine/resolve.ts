@@ -21,18 +21,30 @@ import type {
   TraceSource,
 } from './types'
 
-/** Conta quantas tags do ctx — ou entities da jogada — casam a consulta. */
+/** O valor da primeira tag do ctx com a chave dada (ou undefined). */
+function tagValue(ctx: ScoringContext, key: string): number | undefined {
+  return ctx.tags.find((t) => t.key === key)?.value
+}
+
+/** Conta quantas tags do ctx, entities da jogada, ou pecas da cobra casam a consulta. */
 function matchCount(query: MatchQuery, ctx: ScoringContext): number {
   if (query.target === 'tag') {
     return ctx.tags.filter(
       (t) => t.key === query.key && (query.value === undefined || t.value === query.value),
     ).length
   }
-  return ctx.entities.filter((e) =>
-    e.tags.some(
-      (t) => t.key === query.key && (query.value === undefined || t.value === query.value),
-    ),
-  ).length
+  if (query.target === 'entity') {
+    return ctx.entities.filter((e) =>
+      e.tags.some(
+        (t) => t.key === query.key && (query.value === undefined || t.value === query.value),
+      ),
+    ).length
+  }
+  // snapshot: conta pecas na cobra que contem um numero. O numero vem de `fromTag`
+  // (ex.: closes_number) ou e fixo em `value`.
+  const num = query.fromTag !== undefined ? tagValue(ctx, query.fromTag) : query.value
+  if (num === undefined) return 0
+  return ctx.snapshot.count(String(num))
 }
 
 /** Aplica um unico efeito ao acumulador/deltas e empurra uma TraceEntry. */
@@ -81,6 +93,20 @@ function applyEffect(
     case 'add_mult_per':
       if (effect.query !== undefined) {
         acc.mult += n * matchCount(effect.query, ctx)
+      }
+      break
+
+    case 'add_base_tag':
+      if (effect.tag !== undefined) {
+        const v = tagValue(ctx, effect.tag)
+        if (v !== undefined) acc.chips += (effect.args[0] ?? 1) * v
+      }
+      break
+
+    case 'add_mult_tag':
+      if (effect.tag !== undefined) {
+        const v = tagValue(ctx, effect.tag)
+        if (v !== undefined) acc.mult += (effect.args[0] ?? 1) * v
       }
       break
   }

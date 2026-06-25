@@ -84,3 +84,53 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
     effects: [{ op: 'add_mult_per', args: [2], query: { target: 'tag', key: 'contains', value: 6 } }],
   },
 ]
+
+// Modificadores TOPOLOGICOS (PARTE 2a): usam a DSL estendida — quantidade vinda de
+// uma tag, contagem na cobra (snapshot), e predicado de comprimento da cobra.
+export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
+  {
+    id: 'martelo',
+    name: 'Martelo',
+    rarity: 'common',
+    cost: 4,
+    slotType: 'standard',
+    // Dupla: soma o proprio value_sum a base (peca pesada vira ainda mais pesada).
+    trigger: { kind: 'has_tag', tag: 'is_double' },
+    effects: [{ op: 'add_base_tag', tag: 'value_sum', args: [1] }],
+  },
+  {
+    id: 'colecionador',
+    name: 'Colecionador',
+    rarity: 'common',
+    cost: 4,
+    slotType: 'standard',
+    // +2 de base por peca da cobra que contem um seis. Arquetipo "seis".
+    trigger: { kind: 'always' },
+    effects: [{ op: 'add_base_per', args: [2], query: { target: 'snapshot', key: 'contains', value: 6 } }],
+  },
+  {
+    id: 'numerologo',
+    name: 'Numerologo',
+    rarity: 'uncommon',
+    cost: 6,
+    slotType: 'standard',
+    // +3 de mult por peca da cobra que contem o numero recem-exposto (closes_number).
+    trigger: { kind: 'always' },
+    effects: [
+      { op: 'add_mult_per', args: [3], query: { target: 'snapshot', key: 'contains', fromTag: 'closes_number' } },
+    ],
+  },
+  {
+    id: 'serpente',
+    name: 'Serpente',
+    rarity: 'rare',
+    cost: 8,
+    slotType: 'standard',
+    // A cada 5 pecas na cobra, dobra o multiplicador. Arquetipo "cobra longa".
+    trigger: { kind: 'snapshot', metric: 'chainLength', mod: 5, cmp: '==', value: 0 },
+    effects: [{ op: 'mul_mult', args: [2] }],
+  },
+]
+
+/** O pool completo disponivel ate aqui (portavel + topologico). */
+export const DOMINO_POOL: Modifier[] = [...DOMINO_POOL_PORTABLE, ...DOMINO_POOL_TOPOLOGICAL]

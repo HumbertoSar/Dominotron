@@ -50,6 +50,13 @@ export function evaluatePredicate(
     case 'run':
       return compare(run[pred.field], pred.cmp, pred.value)
 
+    case 'snapshot': {
+      // Unica metrica por ora: o comprimento da cobra. `mod` permite "multiplo de N".
+      const metric = pred.metric === 'chainLength' ? ctx.snapshot.chainLength() : 0
+      const lhs = pred.mod !== undefined ? metric % pred.mod : metric
+      return compare(lhs, pred.cmp, pred.value)
+    }
+
     case 'and':
       return pred.preds.every((p) => evaluatePredicate(p, ctx, run))
 

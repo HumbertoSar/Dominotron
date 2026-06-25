@@ -97,12 +97,20 @@ ao Resolver (e atualizar este doc):
 | `mul_mult(x)` | `mult *= x` ← os "espinhosos" que estouram a escala (rare/caro) |
 | `add_money(n)` | dinheiro += n (via deltas) |
 | `add_resource(id, n)` | recurso da rodada += n (via deltas) |
-| `add_base_per(tagOrEntityQuery, n)` | `chips += n * count(match)` |
-| `add_mult_per(tagOrEntityQuery, n)` | `mult += n * count(match)` |
+| `add_base_per(query, n)` | `chips += n * count(match)` |
+| `add_mult_per(query, n)` | `mult += n * count(match)` |
+| `add_base_tag(tag, k)` | `chips += k * valueOf(tag)` ← quantidade vinda do **valor** de uma tag (M3 2a) |
+| `add_mult_tag(tag, k)` | `mult += k * valueOf(tag)` (M3 2a) |
+
+A `query` das ops `_per` tem três alvos: `tag` (casa `ctx.tags`), `entity` (casa tags das
+entities) e `snapshot` (conta na cobra via `snapshot.count(numero)`; o número pode vir fixo
+ou do valor de uma tag, via `fromTag` — ex.: `closes_number`). Os alvos `snapshot` são as
+ops **topológicas** (M3 2a).
 
 `trigger` (`Predicate`) é uma árvore declarativa sobre: tags presentes em `ctx.tags`,
-contagens de entities, e campos de `RunStateView`. Exemplos: `always`, `has_tag('is_double')`,
-`tag_value('value_sum') >= 9`, `and(...)`, `or(...)`, `not(...)`.
+contagens de entities, campos de `RunStateView`, e métricas do `snapshot`. Exemplos:
+`always`, `has_tag('is_double')`, `tag_value('value_sum') >= 9`, `snapshot(chainLength mod 5 == 0)`
+(M3 2a), `and(...)`, `or(...)`, `not(...)`.
 
 > **Por que fechada.** A DSL declarativa permite: configs diffáveis e versionáveis;
 > segurança (nada executa código arbitrário); e **análise estática** — os testes T4/T5/T8
