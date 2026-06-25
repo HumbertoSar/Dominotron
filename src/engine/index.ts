@@ -9,5 +9,10 @@
 // Conteudo presente: M1 (Resolver + Trace). Por vir: M2 (Run + Economy + Rng).
 
 export * from './types'
+export * from './config'
 export { resolve } from './resolve'
 export { evaluatePredicate, compare } from './predicate'
+export { makeRng, hashSeed } from './rng'
+export * from './run'
+export * from './economy'
+export * from './shop'
