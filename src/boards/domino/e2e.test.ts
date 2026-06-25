@@ -18,7 +18,7 @@ import {
   type RunState,
 } from '../../engine/index'
 import { dominoBoard } from './board'
-import { DOMINO_POOL_PORTABLE } from './pool'
+import { DOMINO_POOL } from './pool'
 
 function dominoConfig(): RunConfig {
   return {
@@ -32,7 +32,7 @@ function dominoConfig(): RunConfig {
       prices: { common: 4, uncommon: 6, rare: 8 },
     },
     slots: 5,
-    modifiers: DOMINO_POOL_PORTABLE,
+    modifiers: DOMINO_POOL,
   }
 }
 
@@ -77,7 +77,7 @@ describe('run headless end-to-end (DoD do M3)', () => {
 
   it('modificadores ativos elevam a pontuacao vs. jogar limpo', () => {
     const limpo = playOneBlind(2026, []).roundScore
-    const comMods = playOneBlind(2026, DOMINO_POOL_PORTABLE).roundScore
+    const comMods = playOneBlind(2026, DOMINO_POOL).roundScore
     expect(comMods).toBeGreaterThan(limpo)
   })
 

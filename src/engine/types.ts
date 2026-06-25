@@ -68,6 +68,9 @@ export type EffectOp =
   | 'add_resource'
   | 'add_base_per'
   | 'add_mult_per'
+  // Estendidos (M3 Parte 2a): quantidade vinda do VALOR de uma tag.
+  | 'add_base_tag'
+  | 'add_mult_tag'
 
 /** De onde veio uma linha do Trace. */
 export type TraceSource = ModifierId | 'base' | 'hand'
@@ -94,12 +97,19 @@ export type Rarity = 'common' | 'uncommon' | 'rare'
 
 export type Comparison = '==' | '!=' | '>' | '>=' | '<' | '<='
 
-/** Consulta de contagem para as ops "_per": casa tags do ctx ou entities da jogada. */
+/**
+ * Consulta de contagem para as ops "_per".
+ * - `tag`: casa tags do ctx.
+ * - `entity`: casa tags das entities da jogada.
+ * - `snapshot`: conta na cobra via `snapshot.count(numero)` — topologica (M3 2a).
+ */
 export interface MatchQuery {
-  target: 'tag' | 'entity'
+  target: 'tag' | 'entity' | 'snapshot'
   key: string
   /** Se definido, casa tambem o valor da tag (alem da chave). */
   value?: number
+  /** Para `snapshot`: o numero a contar vem do VALOR desta tag do ctx (ex.: closes_number). */
+  fromTag?: string
 }
 
 /** Um efeito: uma op nomeada da DSL fechada + seus argumentos. Modificadores sao DADOS. */
@@ -110,6 +120,8 @@ export interface Effect {
   query?: MatchQuery
   /** Usado por add_resource: qual recurso. */
   resource?: ResourceId
+  /** Usado por add_base_tag / add_mult_tag: a tag cujo VALOR vira a quantidade. */
+  tag?: string
 }
 
 /** Arvore declarativa de gatilho. Sem funcoes arbitrarias, sem eval (Leis 7 e 8). */
@@ -119,6 +131,8 @@ export type Predicate =
   | { kind: 'tag_value'; tag: string; cmp: Comparison; value: number }
   | { kind: 'entity_count'; key: string; cmp: Comparison; value: number }
   | { kind: 'run'; field: 'ante' | 'blind' | 'money'; cmp: Comparison; value: number }
+  // Topologico (M3 2a): le uma metrica do snapshot, opcionalmente modulo `mod`.
+  | { kind: 'snapshot'; metric: 'chainLength'; mod?: number; cmp: Comparison; value: number }
   | { kind: 'and'; preds: Predicate[] }
   | { kind: 'or'; preds: Predicate[] }
   | { kind: 'not'; pred: Predicate }

@@ -30,15 +30,22 @@ function tagsReadByPredicate(pred: Predicate, acc: Set<string>): void {
       break
     case 'always':
     case 'run':
+    case 'snapshot':
       break
   }
 }
 
-/** Coleta todas as chaves de tag que um modificador le (trigger + queries dos effects). */
+/** Coleta todas as chaves de tag que um modificador le (trigger + effects). */
 function tagsReadByModifier(mod: Modifier, acc: Set<string>): void {
   tagsReadByPredicate(mod.trigger, acc)
   for (const effect of mod.effects) {
-    if (effect.query) acc.add(effect.query.key)
+    if (effect.query) {
+      // Queries 'tag'/'entity' referenciam uma tag do vocabulario por `key`.
+      // Queries 'snapshot' contam na cobra; o vinculo ao vocabulario e via `fromTag`.
+      if (effect.query.target !== 'snapshot') acc.add(effect.query.key)
+      if (effect.query.fromTag !== undefined) acc.add(effect.query.fromTag)
+    }
+    if (effect.tag !== undefined) acc.add(effect.tag)
   }
 }
 
