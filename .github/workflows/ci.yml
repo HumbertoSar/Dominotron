@@ -1,0 +1,40 @@
+# CI — o "robo" que confere o codigo a cada push e pull request.
+# Roda numa maquina limpa na nuvem: instala as dependencias, checa os tipos
+# (TypeScript strict) e roda os testes (Vitest). Verde = pode mesclar com seguranca.
+name: CI
+
+# Quando o robo acorda:
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: typecheck + test
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o codigo do repositorio para a maquina do robo.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Instala o Node.js (mesma versao maior que usamos no projeto).
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3. Instala as dependencias de forma limpa e reproduzivel (usa o package-lock.json).
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Confere os tipos em modo strict — falha se houver erro de tipagem.
+      - name: Typecheck
+        run: npm run typecheck
+
+      # 5. Roda os testes (Vitest).
+      - name: Test
+        run: npm test
