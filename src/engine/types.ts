@@ -33,6 +33,8 @@ export interface BoardQuery {
   count(tagKey: string): number
   endsValues(): number[]
   chainLength(): number
+  /** O numero mais presente na cobra (null se vazia). Para mods mono-numero (M3 2c). */
+  mostCommonNumber(): number | null
 }
 
 /** A unica coisa que o board entrega ao Resolver por jogada. NAO contem pontuacao (Lei 1). */
@@ -85,6 +87,9 @@ export type EffectOp =
   | 'add_mult_tag'
   // Estendido (M3 Parte 2b): mult *= base ^ (contador de memoria de rodada).
   | 'mul_mult_pow'
+  // Estendidos (M3 Parte 2c): quantidade vinda do estado da run.
+  | 'add_mult_run'
+  | 'add_money_per_resource'
 
 /** De onde veio uma linha do Trace. */
 export type TraceSource = ModifierId | 'base' | 'hand'
@@ -124,6 +129,8 @@ export interface MatchQuery {
   value?: number
   /** Para `snapshot`: o numero a contar vem do VALOR desta tag do ctx (ex.: closes_number). */
   fromTag?: string
+  /** Para `entity` (M3 2c): casa o valor da tag contra uma metrica do snapshot (the_count). */
+  equalsSnapshot?: 'mostCommonNumber'
 }
 
 /** Um efeito: uma op nomeada da DSL fechada + seus argumentos. Modificadores sao DADOS. */
@@ -138,6 +145,23 @@ export interface Effect {
   tag?: string
   /** Usado por mul_mult_pow: qual contador de memoria de rodada vira o expoente. */
   memoryField?: 'plays' | 'doubles'
+  /** Usado por add_mult_run: qual campo da run vira a quantidade. */
+  runField?: 'money'
+}
+
+/** Momentos da rodada em que efeitos de evento disparam (M3 Parte 2c). */
+export type RoundEvent = 'round_start' | 'round_end' | 'lock'
+
+/** Efeitos disparados por um evento da rodada (nao por uma jogada). */
+export interface EventHook {
+  on: RoundEvent
+  effects: Effect[]
+}
+
+/** Descritor de um modificador de REGRA (muda board/loja, nao a pontuacao). */
+export interface RuleSpec {
+  kind: 'two_ends_play' | 'shop_thinning'
+  amount?: number
 }
 
 /** Arvore declarativa de gatilho. Sem funcoes arbitrarias, sem eval (Leis 7 e 8). */
@@ -165,6 +189,10 @@ export interface Modifier {
   slotType: 'standard'
   trigger: Predicate
   effects: Effect[]
+  /** Efeitos disparados por eventos da rodada (M3 2c). */
+  hooks?: EventHook[]
+  /** Regra que muda board/loja (M3 2c). Aplicada pelo board/loja, nao pelo Resolver. */
+  rule?: RuleSpec
 }
 
 // ---------------------------------------------------------------------------

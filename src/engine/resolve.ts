@@ -36,6 +36,18 @@ function matchCount(query: MatchQuery, ctx: ScoringContext): number {
     ).length
   }
   if (query.target === 'entity') {
+    // the_count: conta METADES (tags) iguais a uma metrica do snapshot (mostCommonNumber).
+    if (query.equalsSnapshot !== undefined) {
+      const target = ctx.snapshot.mostCommonNumber()
+      let n = 0
+      for (const e of ctx.entities) {
+        for (const t of e.tags) {
+          if (t.key === query.key && t.value === target) n++
+        }
+      }
+      return n
+    }
+    // Caso geral: conta ENTITIES que tem alguma tag casando.
     return ctx.entities.filter((e) =>
       e.tags.some(
         (t) => t.key === query.key && (query.value === undefined || t.value === query.value),
@@ -56,6 +68,7 @@ function applyEffect(
   acc: Accumulator,
   deltas: StateDeltas,
   ctx: ScoringContext,
+  run: RunStateView,
   memory: RoundMemory,
   entries: TraceEntry[],
 ): void {
@@ -119,6 +132,18 @@ function applyEffect(
       acc.mult *= Math.pow(effect.args[0] ?? 1, count)
       break
     }
+
+    case 'add_mult_run':
+      // Aposta: +mult por unidade de dinheiro retido.
+      if (effect.runField === 'money') acc.mult += n * run.money
+      break
+
+    case 'add_money_per_resource':
+      // (tambem usavel em evento) dinheiro por recurso restante.
+      if (effect.resource !== undefined) {
+        deltas.money = (deltas.money ?? 0) + n * (run.resources[effect.resource] ?? 0)
+      }
+      break
   }
 
   // accAfter e uma COPIA: o Trace e um historico imutavel de snapshots.
@@ -153,7 +178,7 @@ export function resolve(
   for (const mod of active) {
     if (!evaluatePredicate(mod.trigger, ctx, run, memory)) continue
     for (const effect of mod.effects) {
-      applyEffect(effect, mod.id, acc, deltas, ctx, memory, entries)
+      applyEffect(effect, mod.id, acc, deltas, ctx, run, memory, entries)
     }
   }
 

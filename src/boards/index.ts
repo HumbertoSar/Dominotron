@@ -11,6 +11,8 @@ export {
   DOMINO_POOL_PORTABLE,
   DOMINO_POOL_TOPOLOGICAL,
   DOMINO_POOL_MEMORY,
+  DOMINO_POOL_EVENTS,
+  DOMINO_POOL_RULE,
   DOMINO_POOL,
 } from './domino/pool'
 export * as dominoTiles from './domino/tiles'

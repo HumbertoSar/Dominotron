@@ -102,6 +102,8 @@ ao Resolver (e atualizar este doc):
 | `add_base_tag(tag, k)` | `chips += k * valueOf(tag)` ← quantidade vinda do **valor** de uma tag (M3 2a) |
 | `add_mult_tag(tag, k)` | `mult += k * valueOf(tag)` (M3 2a) |
 | `mul_mult_pow(field, b)` | `mult *= b ^ memory[field]` ← escala por um contador de **memória de rodada** (M3 2b) |
+| `add_mult_run(field, n)` | `mult += n * run[field]` ← quantidade vinda do **estado da run** (M3 2c) |
+| `add_money_per_resource(res, n)` | `dinheiro += n * run.resources[res]` (M3 2c) |
 
 A `query` das ops `_per` tem três alvos: `tag` (casa `ctx.tags`), `entity` (casa tags das
 entities) e `snapshot` (conta na cobra via `snapshot.count(numero)`; o número pode vir fixo
@@ -119,6 +121,12 @@ rodada**. Exemplos: `always`, `has_tag('is_double')`, `tag_value('value_sum') >=
 > parâmetro opcional `memory: RoundMemory` (estado ANTES da jogada). O chamador (run loop)
 > avança a memória com `advanceRoundMemory` após cada jogada. O Resolver continua puro: lê a
 > memória, nunca a muta.
+
+> **Eventos e regras (M3 2c).** Além da pontuação por jogada, um modificador pode ter `hooks`
+> (efeitos disparados em `round_start` / `lock` / `round_end`, via `resolveEvent` → `StateDeltas`)
+> e/ou um descritor `rule` (`two_ends_play`, `shop_thinning`) que o **board/loja** aplica — não
+> o Resolver. Os helpers (`totalShopThinning`, `hasTwoEndsPlay`) já existem; a integração das
+> regras no loop jogável chega no M5 (CLI).
 
 > **Por que fechada.** A DSL declarativa permite: configs diffáveis e versionáveis;
 > segurança (nada executa código arbitrário); e **análise estática** — os testes T4/T5/T8

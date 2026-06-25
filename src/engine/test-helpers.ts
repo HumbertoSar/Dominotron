@@ -19,6 +19,7 @@ export function fakeSnapshot(overrides: Partial<BoardQuery> = {}): BoardQuery {
     count: () => 0,
     endsValues: () => [],
     chainLength: () => 0,
+    mostCommonNumber: () => null,
     ...overrides,
   }
 }

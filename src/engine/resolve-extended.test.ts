@@ -56,6 +56,40 @@ describe('matchCount snapshot — contar na cobra', () => {
   })
 })
 
+describe('the_count — entity contra mostCommonNumber do snapshot', () => {
+  const theCount = makeMod('the_count', [
+    { op: 'add_mult_per', args: [2], query: { target: 'entity', key: 'contains', equalsSnapshot: 'mostCommonNumber' } },
+  ])
+
+  it('conta as metades da peca iguais ao numero mais comum da cobra', () => {
+    const ctx = makeCtx({
+      baseValue: 9,
+      entities: [{ id: '3-6', tags: [tag('contains', 3), tag('contains', 6)] }],
+      snapshot: fakeSnapshot({ mostCommonNumber: () => 6 }),
+    })
+    // 1 metade (o 6) casa -> mult 1 + 2*1 = 3 -> 27
+    expect(resolve(ctx, [theCount], run, fakeRng).trace.finalScore).toBe(27)
+  })
+
+  it('uma dupla do numero comum conta as duas metades', () => {
+    const ctx = makeCtx({
+      baseValue: 12,
+      entities: [{ id: '6-6', tags: [tag('contains', 6), tag('contains', 6)] }],
+      snapshot: fakeSnapshot({ mostCommonNumber: () => 6 }),
+    })
+    // 2 metades -> mult 1 + 2*2 = 5 -> 60
+    expect(resolve(ctx, [theCount], run, fakeRng).trace.finalScore).toBe(60)
+  })
+
+  it('cobra vazia (mostCommonNumber null) nao conta nada', () => {
+    const ctx = makeCtx({
+      baseValue: 9,
+      entities: [{ id: '3-6', tags: [tag('contains', 3), tag('contains', 6)] }],
+    })
+    expect(resolve(ctx, [theCount], run, fakeRng).trace.finalScore).toBe(9)
+  })
+})
+
 describe('predicate snapshot — comprimento da cobra com modulo (serpente)', () => {
   const serpente = makeMod('serpente', [{ op: 'mul_mult', args: [2] }], {
     kind: 'snapshot',
