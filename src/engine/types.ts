@@ -59,6 +59,18 @@ export interface Accumulator {
   mult: number
 }
 
+/** O que o Resolver lembra ENTRE jogadas da mesma rodada (estado ANTES da jogada atual). */
+export interface RoundMemory {
+  /** Jogadas ja resolvidas nesta rodada. */
+  plays: number
+  /** value_sum da jogada anterior (null se esta e a primeira). */
+  prevValueSum: number | null
+  /** Duplas jogadas nesta rodada (antes da atual). */
+  doubles: number
+  /** A jogada anterior foi uma dupla? */
+  prevWasDouble: boolean
+}
+
 /** O conjunto COMPLETO e fechado de ops da DSL de efeitos (Lei 8). */
 export type EffectOp =
   | 'add_base'
@@ -71,6 +83,8 @@ export type EffectOp =
   // Estendidos (M3 Parte 2a): quantidade vinda do VALOR de uma tag.
   | 'add_base_tag'
   | 'add_mult_tag'
+  // Estendido (M3 Parte 2b): mult *= base ^ (contador de memoria de rodada).
+  | 'mul_mult_pow'
 
 /** De onde veio uma linha do Trace. */
 export type TraceSource = ModifierId | 'base' | 'hand'
@@ -122,6 +136,8 @@ export interface Effect {
   resource?: ResourceId
   /** Usado por add_base_tag / add_mult_tag: a tag cujo VALOR vira a quantidade. */
   tag?: string
+  /** Usado por mul_mult_pow: qual contador de memoria de rodada vira o expoente. */
+  memoryField?: 'plays' | 'doubles'
 }
 
 /** Arvore declarativa de gatilho. Sem funcoes arbitrarias, sem eval (Leis 7 e 8). */
@@ -133,6 +149,10 @@ export type Predicate =
   | { kind: 'run'; field: 'ante' | 'blind' | 'money'; cmp: Comparison; value: number }
   // Topologico (M3 2a): le uma metrica do snapshot, opcionalmente modulo `mod`.
   | { kind: 'snapshot'; metric: 'chainLength'; mod?: number; cmp: Comparison; value: number }
+  // Memoria de rodada (M3 2b):
+  | { kind: 'memory'; field: 'plays' | 'doubles'; cmp: Comparison; value: number }
+  | { kind: 'memory_flag'; field: 'prevWasDouble' }
+  | { kind: 'tag_vs_memory'; tag: string; field: 'prevValueSum'; cmp: Comparison }
   | { kind: 'and'; preds: Predicate[] }
   | { kind: 'or'; preds: Predicate[] }
   | { kind: 'not'; pred: Predicate }

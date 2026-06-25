@@ -21,6 +21,9 @@ function tagsReadByPredicate(pred: Predicate, acc: Set<string>): void {
     case 'entity_count':
       acc.add(pred.key)
       break
+    case 'tag_vs_memory':
+      acc.add(pred.tag)
+      break
     case 'and':
     case 'or':
       pred.preds.forEach((p) => tagsReadByPredicate(p, acc))

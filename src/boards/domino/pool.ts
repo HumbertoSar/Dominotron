@@ -132,5 +132,49 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
   },
 ]
 
-/** O pool completo disponivel ate aqui (portavel + topologico). */
-export const DOMINO_POOL: Modifier[] = [...DOMINO_POOL_PORTABLE, ...DOMINO_POOL_TOPOLOGICAL]
+// Modificadores de MEMORIA DE RODADA (PARTE 2b): dependem do que veio antes na rodada.
+export const DOMINO_POOL_MEMORY: Modifier[] = [
+  {
+    id: 'crescente',
+    name: 'Crescente',
+    rarity: 'uncommon',
+    cost: 6,
+    slotType: 'standard',
+    // +2 de mult quando a jogada vale mais que a anterior (ordenacao/tempo).
+    trigger: { kind: 'tag_vs_memory', tag: 'value_sum', field: 'prevValueSum', cmp: '>' },
+    effects: [{ op: 'add_mult', args: [2] }],
+  },
+  {
+    id: 'gemeos',
+    name: 'Gemeos',
+    rarity: 'rare',
+    cost: 8,
+    slotType: 'standard',
+    // Duas duplas seguidas: dobra o mult na 2a.
+    trigger: {
+      kind: 'and',
+      preds: [
+        { kind: 'has_tag', tag: 'is_double' },
+        { kind: 'memory_flag', field: 'prevWasDouble' },
+      ],
+    },
+    effects: [{ op: 'mul_mult', args: [2] }],
+  },
+  {
+    id: 'mirror_engine',
+    name: 'Motor Espelho',
+    rarity: 'rare',
+    cost: 8,
+    slotType: 'standard',
+    // Cada dupla ja jogada na rodada escala o mult em 1.2 (bola de neve de duplas).
+    trigger: { kind: 'always' },
+    effects: [{ op: 'mul_mult_pow', args: [1.2], memoryField: 'doubles' }],
+  },
+]
+
+/** O pool completo disponivel ate aqui (portavel + topologico + memoria). */
+export const DOMINO_POOL: Modifier[] = [
+  ...DOMINO_POOL_PORTABLE,
+  ...DOMINO_POOL_TOPOLOGICAL,
+  ...DOMINO_POOL_MEMORY,
+]

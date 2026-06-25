@@ -6,6 +6,7 @@
 // Puro: nenhuma escrita fora do retorno. Os `deltas` DESCREVEM mudancas (dinheiro,
 // recursos) que o RunManager aplica — o Resolver nao muta a run.
 
+import { INITIAL_ROUND_MEMORY } from './memory'
 import { evaluatePredicate } from './predicate'
 import type {
   Accumulator,
@@ -13,6 +14,7 @@ import type {
   MatchQuery,
   Modifier,
   Rng,
+  RoundMemory,
   RunStateView,
   ScoringContext,
   StateDeltas,
@@ -54,6 +56,7 @@ function applyEffect(
   acc: Accumulator,
   deltas: StateDeltas,
   ctx: ScoringContext,
+  memory: RoundMemory,
   entries: TraceEntry[],
 ): void {
   const n = effect.args[0] ?? 0
@@ -109,6 +112,13 @@ function applyEffect(
         if (v !== undefined) acc.mult += (effect.args[0] ?? 1) * v
       }
       break
+
+    case 'mul_mult_pow': {
+      // mult *= base ^ (contador de memoria). Ex.: Motor Espelho escala por dupla.
+      const count = effect.memoryField === 'plays' ? memory.plays : memory.doubles
+      acc.mult *= Math.pow(effect.args[0] ?? 1, count)
+      break
+    }
   }
 
   // accAfter e uma COPIA: o Trace e um historico imutavel de snapshots.
@@ -122,12 +132,14 @@ function applyEffect(
  * @param active  os modificadores nos slots, EM ORDEM (a ordem importa — Lei 10)
  * @param run     leitura read-only do estado da run, para os triggers
  * @param _rng    RNG semeado, reservado para efeitos que precisem (nenhum ainda; ver M2)
+ * @param memory  memoria de rodada (estado ANTES desta jogada); default = rodada zerada
  */
 export function resolve(
   ctx: ScoringContext,
   active: Modifier[],
   run: RunStateView,
   _rng: Rng,
+  memory: RoundMemory = INITIAL_ROUND_MEMORY,
 ): { trace: Trace; deltas: StateDeltas } {
   const entries: TraceEntry[] = []
   const deltas: StateDeltas = {}
@@ -139,9 +151,9 @@ export function resolve(
 
   // Itera os modificadores na ordem dos slots, sequencialmente.
   for (const mod of active) {
-    if (!evaluatePredicate(mod.trigger, ctx, run)) continue
+    if (!evaluatePredicate(mod.trigger, ctx, run, memory)) continue
     for (const effect of mod.effects) {
-      applyEffect(effect, mod.id, acc, deltas, ctx, entries)
+      applyEffect(effect, mod.id, acc, deltas, ctx, memory, entries)
     }
   }
 

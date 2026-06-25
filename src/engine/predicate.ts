@@ -3,7 +3,8 @@
 // O trigger de um modificador e uma arvore declarativa (Lei 7). Aqui a percorremos
 // contra (ctx, run) e devolvemos um booleano. Nenhuma execucao de codigo arbitrario.
 
-import type { Comparison, Predicate, RunStateView, ScoringContext } from './types'
+import { INITIAL_ROUND_MEMORY } from './memory'
+import type { Comparison, Predicate, RoundMemory, RunStateView, ScoringContext } from './types'
 
 /** Compara dois numeros segundo o operador declarado. */
 export function compare(a: number, cmp: Comparison, b: number): boolean {
@@ -23,11 +24,12 @@ export function compare(a: number, cmp: Comparison, b: number): boolean {
   }
 }
 
-/** Avalia o gatilho contra a jogada (ctx) e o estado da run. */
+/** Avalia o gatilho contra a jogada (ctx), o estado da run e a memoria de rodada. */
 export function evaluatePredicate(
   pred: Predicate,
   ctx: ScoringContext,
   run: RunStateView,
+  memory: RoundMemory = INITIAL_ROUND_MEMORY,
 ): boolean {
   switch (pred.kind) {
     case 'always':
@@ -57,13 +59,28 @@ export function evaluatePredicate(
       return compare(lhs, pred.cmp, pred.value)
     }
 
+    case 'memory': {
+      const v = pred.field === 'plays' ? memory.plays : memory.doubles
+      return compare(v, pred.cmp, pred.value)
+    }
+
+    case 'memory_flag':
+      return memory.prevWasDouble
+
+    case 'tag_vs_memory': {
+      // Compara o valor da tag atual com a memoria (ex.: value_sum > value_sum anterior).
+      const current = ctx.tags.find((t) => t.key === pred.tag)?.value
+      if (current === undefined || memory.prevValueSum === null) return false
+      return compare(current, pred.cmp, memory.prevValueSum)
+    }
+
     case 'and':
-      return pred.preds.every((p) => evaluatePredicate(p, ctx, run))
+      return pred.preds.every((p) => evaluatePredicate(p, ctx, run, memory))
 
     case 'or':
-      return pred.preds.some((p) => evaluatePredicate(p, ctx, run))
+      return pred.preds.some((p) => evaluatePredicate(p, ctx, run, memory))
 
     case 'not':
-      return !evaluatePredicate(pred.pred, ctx, run)
+      return !evaluatePredicate(pred.pred, ctx, run, memory)
   }
 }
