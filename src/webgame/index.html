@@ -28,10 +28,18 @@
         padding: 1rem 1rem 3rem;
       }
       h1 {
-        text-align: center;
         font-size: 1.5rem;
-        margin: 0.5rem 0 1rem;
+        margin: 0;
         letter-spacing: 0.05em;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0.5rem 0 1rem;
+      }
+      .help {
+        font-size: 0.8rem;
       }
       h2 {
         font-size: 1.05rem;
@@ -279,12 +287,57 @@
         flex-direction: column;
         gap: 0.4rem;
       }
+      .shop-item {
+        max-width: 230px;
+      }
+      .shop-item .desc {
+        font-size: 0.78rem;
+        opacity: 0.75;
+        line-height: 1.3;
+      }
       .owned {
         margin: 0.7rem 0;
         display: flex;
         gap: 0.4rem;
         flex-wrap: wrap;
         align-items: center;
+      }
+
+      /* tutorial */
+      .tutorial {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.72);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        z-index: 10;
+      }
+      .tut-card {
+        background: #181826;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0.8rem;
+        padding: 1.2rem 1.5rem;
+        max-width: 520px;
+      }
+      .tut-card ol {
+        padding-left: 1.1rem;
+        line-height: 1.5;
+      }
+      .tut-card li {
+        margin-bottom: 0.5rem;
+      }
+      .tut-card .g {
+        color: var(--green);
+        font-weight: 700;
+      }
+      .mod-chip,
+      .tile {
+        cursor: pointer;
+      }
+      .mod-chip[title]:hover {
+        outline: 1px solid rgba(255, 255, 255, 0.3);
       }
 
       /* end overlay */

@@ -14,6 +14,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'heavyweight',
     name: 'Pesadao',
+    description: 'Peca pesada (soma das metades >= 9): +8 fichas.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -23,6 +24,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'lightfingers',
     name: 'Dedo-Leve',
+    description: 'Peca leve (soma <= 3): +3 de multiplicador.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -32,6 +34,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'even_steven',
     name: 'Par Perfeito',
+    description: 'Soma da peca e PAR: +4 de multiplicador.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -41,6 +44,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'odd_todd',
     name: 'Impar Teimoso',
+    description: 'Soma da peca e IMPAR: +4 de multiplicador.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -50,6 +54,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'polish',
     name: 'Lustro',
+    description: 'Cada dupla que voce joga: +$1.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -59,6 +64,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'high_roller',
     name: 'Cabeca-Alta',
+    description: 'A peca tem um 6: +2 de multiplicador.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -68,6 +74,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'low_baller',
     name: 'Pe-no-Chao',
+    description: 'A peca tem um 0 (branco): +4 fichas.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -77,6 +84,7 @@ export const DOMINO_POOL_PORTABLE: Modifier[] = [
   {
     id: 'sixer',
     name: 'Meia-Duzia',
+    description: '+2 de multiplicador para cada 6 na peca jogada.',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -91,6 +99,7 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
   {
     id: 'martelo',
     name: 'Martelo',
+    description: 'Dupla: soma o proprio valor as fichas (uma 6|6 da +12).',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -101,6 +110,7 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
   {
     id: 'colecionador',
     name: 'Colecionador',
+    description: '+2 fichas por peca NA COBRA que contem um 6.',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -111,6 +121,7 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
   {
     id: 'numerologo',
     name: 'Numerologo',
+    description: '+3 de mult por peca na cobra com o numero que voce acabou de expor.',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -123,6 +134,7 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
   {
     id: 'serpente',
     name: 'Serpente',
+    description: 'A cada 3 pecas na cobra, DOBRA o multiplicador.',
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',
@@ -133,6 +145,7 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
   {
     id: 'the_count',
     name: 'O Conde',
+    description: '+2 de mult por metade da peca igual ao numero mais comum da cobra.',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -149,6 +162,7 @@ export const DOMINO_POOL_EVENTS: Modifier[] = [
   {
     id: 'ferrolho',
     name: 'Ferrolho',
+    description: 'Ao TRAVAR a rodada: +$6 e devolve 1 jogada.',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -168,6 +182,7 @@ export const DOMINO_POOL_EVENTS: Modifier[] = [
   {
     id: 'economia_circular',
     name: 'Economia Circular',
+    description: 'Fim da rodada: +$1 por troca (redraw) NAO usada.',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -179,6 +194,7 @@ export const DOMINO_POOL_EVENTS: Modifier[] = [
   {
     id: 'aposta',
     name: 'Aposta',
+    description: 'Inicio da rodada: paga $3. Cada jogada: +1 de mult por $ que voce tem.',
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',
@@ -196,6 +212,7 @@ export const DOMINO_POOL_RULE: Modifier[] = [
   {
     id: 'canhoto',
     name: 'Canhoto',
+    description: '(regra) Permite jogar nas duas pontas. [em desenvolvimento]',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -206,6 +223,7 @@ export const DOMINO_POOL_RULE: Modifier[] = [
   {
     id: 'pente_fino',
     name: 'Pente-Fino',
+    description: '(regra) Afina seu baralho na loja. [em desenvolvimento]',
     rarity: 'common',
     cost: 4,
     slotType: 'standard',
@@ -220,6 +238,7 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
   {
     id: 'crescente',
     name: 'Crescente',
+    description: 'Jogada que vale MAIS que a anterior: +2 de multiplicador.',
     rarity: 'uncommon',
     cost: 6,
     slotType: 'standard',
@@ -230,6 +249,7 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
   {
     id: 'gemeos',
     name: 'Gemeos',
+    description: 'Dupla logo apos outra dupla: TRIPLICA o multiplicador.',
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',
@@ -246,6 +266,7 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
   {
     id: 'mirror_engine',
     name: 'Motor Espelho',
+    description: 'Cada dupla ja jogada na rodada multiplica por 1,6 (acumula).',
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',

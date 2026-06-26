@@ -184,6 +184,8 @@ export type Predicate =
 export interface Modifier {
   id: ModifierId
   name: string
+  /** Texto legivel do que o modificador faz (para a loja/UI). */
+  description?: string
   rarity: Rarity
   cost: number
   slotType: 'standard'

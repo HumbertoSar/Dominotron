@@ -15,6 +15,17 @@ function mountGame(seed = 7): HTMLElement {
 }
 
 describe('GameUI (jsdom)', () => {
+  it('mostra o tutorial no inicio e fecha ao clicar', () => {
+    const root = mountGame()
+    expect(root.querySelector('.tutorial')).toBeTruthy()
+    expect(root.textContent).toContain('Como jogar')
+    root.querySelector<HTMLElement>('[data-action="close-tutorial"]')!.click()
+    expect(root.querySelector('.tutorial')).toBeNull()
+    // o botao "? como jogar" reabre
+    root.querySelector<HTMLElement>('[data-action="help"]')!.click()
+    expect(root.querySelector('.tutorial')).toBeTruthy()
+  })
+
   it('renderiza a mao com 7 pecas clicaveis', () => {
     const root = mountGame()
     expect(root.querySelectorAll('.tile')).toHaveLength(7)
@@ -58,5 +69,28 @@ describe('GameUI (jsdom)', () => {
     const hasShop = !!root.querySelector('[data-action="leave-shop"]')
     const hasEnd = !!root.querySelector('[data-action="new-run"]')
     expect(hasShop || hasEnd).toBe(true)
+  })
+
+  it('a loja mostra a descricao de cada modificador a venda', () => {
+    const root = mountGame()
+    root.querySelector<HTMLElement>('[data-action="close-tutorial"]')!.click()
+    let guard = 0
+    while (guard++ < 400 && !root.querySelector('.shop')) {
+      const chooser = root.querySelector<HTMLElement>('[data-action="play"]')
+      if (chooser) {
+        chooser.click()
+        continue
+      }
+      const tile = root.querySelector<HTMLElement>('.tile.playable')
+      if (!tile) break
+      tile.click()
+    }
+    const shop = root.querySelector('.shop')
+    if (shop) {
+      // cada item tem um texto de descricao nao-vazio
+      const descs = [...shop.querySelectorAll('.shop-item .desc')]
+      expect(descs.length).toBeGreaterThan(0)
+      expect(descs.every((d) => (d.textContent ?? '').length > 5)).toBe(true)
+    }
   })
 })
