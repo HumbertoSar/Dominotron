@@ -171,8 +171,8 @@ describe('modificadores topologicos via tabuleiro (Parte 2a)', () => {
     expect(trace.finalScore).toBe(24) // pips 12 + value_sum 12, mult 1
   })
 
-  it('Serpente dobra quando a cobra fecha um multiplo de 5', () => {
-    // cobra com 4 pecas; jogar a 5a (encostando) dispara serpente.
+  it('Serpente dobra quando a cobra fecha um multiplo de 3', () => {
+    // cobra com 2 pecas; jogar a 3a (encostando) dispara serpente.
     const s: DominoState = {
       seed: 1,
       hand: [{ low: 2, high: 3, id: '2-3' }],
@@ -180,13 +180,11 @@ describe('modificadores topologicos via tabuleiro (Parte 2a)', () => {
       chain: [
         { low: 0, high: 1, id: '0-1' },
         { low: 1, high: 2, id: '1-2' },
-        { low: 2, high: 2, id: '2-2' },
-        { low: 2, high: 3, id: '2-3-b' },
       ],
-      ends: [0, 3],
+      ends: [0, 2],
     }
     const { context } = applyAction(s, { kind: 'play', tileId: '2-3', side: 'right' })
-    expect(context.snapshot.chainLength()).toBe(5)
+    expect(context.snapshot.chainLength()).toBe(3)
     const serpente = DOMINO_POOL_TOPOLOGICAL.find((m) => m.id === 'serpente')!
     const { trace } = resolve(context, [serpente], NEUTRAL_RUN, makeRng(1))
     expect(trace.finalScore).toBe(context.baseValue * 2)

@@ -7,7 +7,7 @@
 
 import { defaultDominoConfig } from '../boards/domino/config'
 import { formatReportCard } from './report'
-import { runCheapSanitySuite } from './sanity'
+import { runFullSanitySuite } from './sanity'
 
 interface Args {
   board: string
@@ -39,7 +39,7 @@ function main(): void {
   }
 
   const config = defaultDominoConfig()
-  const results = runCheapSanitySuite(config, args.seeds)
+  const results = runFullSanitySuite(config, args.seeds)
   const card = formatReportCard(`dominotron_v1 (${args.seeds} seeds)`, results)
   console.log(card)
 }
