@@ -11,7 +11,9 @@
     "play": "tsx src/cli/index.ts",
     "harness": "tsx src/harness/index.ts",
     "suco": "vite src/presenter",
-    "build:suco": "vite build src/presenter --base=./ --outDir ../../dist/suco --emptyOutDir"
+    "build:suco": "vite build src/presenter --base=./ --outDir ../../dist/suco --emptyOutDir",
+    "game": "vite src/webgame",
+    "build:game": "vite build src/webgame --base=./ --outDir ../../dist/game --emptyOutDir"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
