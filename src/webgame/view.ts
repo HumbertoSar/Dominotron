@@ -77,7 +77,8 @@ export class GameUI {
       </div>`
     this.sucoArea = this.root.querySelector('#suco-area')!
     this.gameArea = this.root.querySelector('#game-area')!
-    this.suco = new DomPresenter(this.sucoArea, { stepDelayMs: 260 })
+    const shell = this.root.querySelector<HTMLElement>('.shell') ?? this.root
+    this.suco = new DomPresenter(this.sucoArea, { stepDelayMs: 260, shakeTarget: shell })
     this.root.addEventListener('click', (e) => this.onClick(e))
     this.render()
   }

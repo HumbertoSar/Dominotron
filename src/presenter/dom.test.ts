@@ -55,4 +55,23 @@ describe('DomPresenter (jsdom)', () => {
     new NoOpPresenter().present(trace)
     expect(container.children).toHaveLength(0)
   })
+
+  it('juice: solta faiscas e treme o alvo na explosao final', async () => {
+    const container = document.createElement('div')
+    const shakeTarget = document.createElement('div')
+    document.body.append(container, shakeTarget)
+    // stepDelayMs 0 -> present resolve sincrono; shake e sparks ja aplicados.
+    await new DomPresenter(container, { shakeTarget }).present(trace)
+
+    expect(shakeTarget.classList.contains('shaking')).toBe(true)
+    expect(container.querySelectorAll('.spark').length).toBeGreaterThan(0)
+    // o estilo de juice foi injetado uma vez
+    expect(document.getElementById('suco-juice-styles')).toBeTruthy()
+  })
+
+  it('juice pode ser desligado (juice:false) — sem faiscas', async () => {
+    const container = document.createElement('div')
+    await new DomPresenter(container, { juice: false }).present(trace)
+    expect(container.querySelectorAll('.spark').length).toBe(0)
+  })
 })
