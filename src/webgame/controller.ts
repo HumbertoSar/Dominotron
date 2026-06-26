@@ -52,6 +52,7 @@ export type Side = 'left' | 'right'
 export interface ModView {
   id: string
   name: string
+  description: string
   rarity: string
   price: number
 }
@@ -115,6 +116,7 @@ export class GameController {
     return {
       id,
       name: m?.name ?? id,
+      description: m?.description ?? '',
       rarity: m?.rarity ?? 'common',
       price: m ? this.config.economy.prices[m.rarity] : 0,
     }

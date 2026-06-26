@@ -39,9 +39,9 @@ function chainHtml(v: GameView): string {
   </div>`
 }
 
-function modChip(m: { id: string; name: string }, action?: string, label?: string): string {
+function modChip(m: { id: string; name: string; description?: string }, action?: string, label?: string): string {
   const btn = action ? ` <button class="mini" data-action="${action}" data-id="${m.id}">${label}</button>` : ''
-  return `<span class="mod-chip">${m.name}${btn}</span>`
+  return `<span class="mod-chip" title="${m.description ?? ''}">${m.name}${btn}</span>`
 }
 
 export class GameUI {
@@ -56,6 +56,7 @@ export class GameUI {
   private pendingTile: string | null = null
   private discardMode = false
   private discardSel = new Set<string>()
+  private showTutorial = true
 
   constructor(root: HTMLElement, controller: GameController) {
     this.root = root
@@ -67,7 +68,10 @@ export class GameUI {
   mount(): void {
     this.root.innerHTML = `
       <div class="shell">
-        <h1>🁫 Dominotron</h1>
+        <div class="topbar">
+          <h1>🁫 Dominotron</h1>
+          <button class="help" data-action="help">? como jogar</button>
+        </div>
         <div id="suco-area" class="suco-area"></div>
         <div id="game-area"></div>
       </div>`
@@ -89,7 +93,8 @@ export class GameUI {
       chainHtml(v) +
       (v.phase === 'playing' ? this.playingHtml(v) : '') +
       (v.phase === 'shop' ? this.shopHtml(v) : '') +
-      (v.phase === 'won' || v.phase === 'dead' ? this.endHtml(v) : '')
+      (v.phase === 'won' || v.phase === 'dead' ? this.endHtml(v) : '') +
+      (this.showTutorial ? this.tutorialHtml() : '')
     this.presentSuco(v.lastTrace)
   }
 
@@ -104,7 +109,7 @@ export class GameUI {
       .map(([k, n]) => `${k} ${n}`)
       .join(' · ')
     const mods = v.activeMods.length
-      ? v.activeMods.map((m) => `<span class="mod-chip on">${m.name}</span>`).join(' ')
+      ? v.activeMods.map((m) => `<span class="mod-chip on" title="${m.description}">${m.name}</span>`).join(' ')
       : '<span class="muted">nenhum mod ativo</span>'
     const pct = Math.min(100, Math.round((v.roundScore / Math.max(1, v.threshold)) * 100))
     return `<div class="status">
@@ -171,6 +176,7 @@ export class GameUI {
       .map(
         (m) => `<div class="shop-item">
           <div><b>${m.name}</b> <span class="muted">(${m.rarity})</span></div>
+          <div class="desc">${m.description}</div>
           <button data-action="buy" data-id="${m.id}">comprar $${m.price}</button>
         </div>`,
       )
@@ -194,6 +200,23 @@ export class GameUI {
       <div class="controls">
         <button data-action="reroll">reroll $${shop.rerollCost}</button>
         <button class="primary" data-action="leave-shop">proxima blind ▶</button>
+      </div>
+    </div>`
+  }
+
+  private tutorialHtml(): string {
+    return `<div class="tutorial">
+      <div class="tut-card">
+        <h2>Como jogar 🁫</h2>
+        <ol>
+          <li><b>Objetivo:</b> some pontos ate bater o <b>limiar</b> (o "X / alvo") antes que suas <b>jogadas</b> acabem.</li>
+          <li><b>Jogar:</b> clique numa peca <span class="g">verde</span> da sua mao para encosta-la numa ponta da cobra. Se ela casar nas duas pontas, voce escolhe qual.</li>
+          <li><b>Pontuacao:</b> cada jogada vale <b>fichas x multiplicador</b>. O "suco" colorido mostra de onde veio cada ponto (azul = fichas, vermelho = mult, dourado = total).</li>
+          <li><b>Modificadores:</b> entre as rodadas, a <b>loja</b> vende modificadores que turbinam a pontuacao. Cada um tem a descricao do que faz — combine-os!</li>
+          <li><b>Trocar pecas:</b> o botao "trocar pecas" gasta um <b>redraw</b> para descartar e comprar outras.</li>
+          <li><b>Permadeath:</b> nao bateu o limiar = fim da run. Comece outra com nova seed.</li>
+        </ol>
+        <button class="primary" data-action="close-tutorial">comecar a jogar ▶</button>
       </div>
     </div>`
   }
@@ -267,6 +290,12 @@ export class GameUI {
         this.controller = new GameController(this.controller.view().seed + 1)
         this.pendingTile = null
         this.lastPresented = null
+        break
+      case 'help':
+        this.showTutorial = true
+        break
+      case 'close-tutorial':
+        this.showTutorial = false
         break
     }
     this.render()
