@@ -7,6 +7,7 @@
 
 export { dominoBoard } from './domino/board'
 export type { DominoState, DominoAction, PlayAction } from './domino/board'
+export { defaultDominoConfig } from './domino/config'
 export {
   DOMINO_POOL_PORTABLE,
   DOMINO_POOL_TOPOLOGICAL,
