@@ -57,6 +57,7 @@ if (app) {
   const instant = new URLSearchParams(location.search).has('instant')
   const presenter = new DomPresenter(document.querySelector('#suco')!, {
     stepDelayMs: instant ? 0 : 380,
+    shakeTarget: document.body,
   })
   let seed = 1
   const go = async (): Promise<void> => {
