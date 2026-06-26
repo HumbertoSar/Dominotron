@@ -4,6 +4,8 @@
 
 import {
   resolve,
+  thresholdFor,
+  totalBlinds,
   validateVocabulary,
   type BoardQuery,
   type Modifier,
@@ -13,7 +15,8 @@ import {
   type TagSpec,
 } from '../engine/index'
 import { dominoBoard } from '../boards/domino/board'
-import { cleanStrategy, randomStrategy, simulateRun } from './simulate'
+import { buildCost, climbBuild } from './climber'
+import { cleanStrategy, simulateRun, synergyStrategy } from './simulate'
 
 export type Verdict = 'green' | 'yellow' | 'red'
 
@@ -125,29 +128,41 @@ export function testT3CleanDeath(config: RunConfig, n: number): SanityResult {
 // T2 — motor multiplicativo, nao aditivo
 // ---------------------------------------------------------------------------
 
-export function testT2Multiplicative(config: RunConfig, n: number): SanityResult {
-  const scores: number[] = []
-  for (const s of seeds(n)) {
-    scores.push(...simulateRun(config, s, randomStrategy()).perBlindScore)
-  }
-  const sorted = [...scores].sort((a, b) => a - b)
-  const p50 = percentile(sorted, 50) || 1
-  const p95 = percentile(sorted, 95)
-  const ratio = p95 / p50
+/** Torna um pool ADITIVO: troca toda op multiplicativa por uma soma de mult equivalente. */
+function additivize(modifiers: Modifier[]): Modifier[] {
+  return modifiers.map((m) => ({
+    ...m,
+    effects: m.effects.map((e) =>
+      e.op === 'mul_mult' || e.op === 'mul_mult_pow' ? { op: 'add_mult' as const, args: [4] } : e,
+    ),
+  }))
+}
+
+/**
+ * T2 mede se o motor e MULTIPLICATIVO comparando o TETO de uma build com o pool real
+ * contra o TETO com o mesmo pool "aditivado". Um motor multiplicativo gera teto bem
+ * maior (cauda pesada); um aditivo, teto proporcional. A versao p95/p50 sobre aquisicao
+ * aleatoria nao discriminava (ambos davam ~2.3x) — esta versao discrimina.
+ */
+export function testT2Multiplicative(config: RunConfig): SanityResult {
+  const total = totalBlinds(config.thresholdCurve)
+  const full = climbBuild(config, total).score
+  const additive = climbBuild({ ...config, modifiers: additivize(config.modifiers) }, total).score
+  const ratio = additive > 0 ? full / additive : 0
 
   const hasMulMult = config.modifiers.some((m) =>
     m.effects.some((e) => e.op === 'mul_mult' || e.op === 'mul_mult_pow'),
   )
 
   let verdict: Verdict = 'red'
-  if (ratio >= 5 && hasMulMult) verdict = 'green'
-  else if (ratio >= 2.5) verdict = 'yellow'
+  if (ratio >= 1.5 && hasMulMult) verdict = 'green'
+  else if (ratio >= 1.25) verdict = 'yellow'
 
   return {
     id: 'T2',
     name: 'multiplicativo',
     verdict,
-    detail: `p95/p50 = ${ratio.toFixed(1)}x; mul_mult ${hasMulMult ? 'presente' : 'AUSENTE'}`,
+    detail: `teto mult/aditivo = ${ratio.toFixed(2)}x; mul_mult ${hasMulMult ? 'presente' : 'AUSENTE'}`,
   }
 }
 
@@ -183,12 +198,12 @@ export function testT8Order(config: RunConfig): SanityResult {
     return { id: 'T8', name: 'ordem importa', verdict: 'yellow', detail: 'mods de teste ausentes' }
   }
 
-  // Peca 6|6 (is_even, value_sum 12) com a cobra em 5 pecas -> ambos disparam.
+  // Peca 6|6 (is_even, value_sum 12) com a cobra em 6 pecas -> ambos disparam.
   const ctx: ScoringContext = {
     baseValue: 12,
     tags: [{ key: 'value_sum', value: 12 }, { key: 'is_even' }],
     entities: [],
-    snapshot: syntheticSnapshot(5),
+    snapshot: syntheticSnapshot(6),
     consumes: {},
   }
   const run: RunStateView = { ante: 1, blind: 1, money: 0, resources: {}, activeModifierIds: [] }
@@ -209,14 +224,146 @@ export function testT8Order(config: RunConfig): SanityResult {
 }
 
 // ---------------------------------------------------------------------------
-// Suite
+// T4 — existe build que quebra o jogo, e e alcancavel
+// ---------------------------------------------------------------------------
+
+export function testT4BreakingBuild(config: RunConfig): SanityResult {
+  const total = totalBlinds(config.thresholdCurve)
+  const finalThreshold = thresholdFor(config.thresholdCurve, total)
+  const build = climbBuild(config, total)
+  const margin = finalThreshold > 0 ? build.score / finalThreshold : 0
+  const cost = buildCost(config, build.ids)
+
+  let verdict: Verdict = 'red'
+  if (margin >= 1.5) verdict = 'green'
+  else if (margin >= 1) verdict = 'yellow'
+
+  const label = build.ids.length > 0 ? `{${build.ids.join('+')}}` : '{vazio}'
+  return {
+    id: 'T4',
+    name: 'build quebra',
+    verdict,
+    detail: `${label} -> ${margin.toFixed(1)}x o limiar final (custo ${cost})`,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// T6 — diversidade de builds (sem estrategia dominante)
+// ---------------------------------------------------------------------------
+
+const ARCHETYPE: Record<string, string> = {
+  martelo: 'duplas',
+  mirror_engine: 'duplas',
+  gemeos: 'duplas',
+  polish: 'duplas',
+  colecionador: 'mono',
+  numerologo: 'mono',
+  the_count: 'mono',
+  sixer: 'mono',
+  serpente: 'cobra',
+  crescente: 'cobra',
+  economia_circular: 'cobra',
+  even_steven: 'paridade',
+  odd_todd: 'paridade',
+  heavyweight: 'valor',
+  lightfingers: 'valor',
+  high_roller: 'valor',
+  low_baller: 'valor',
+  canhoto: 'mono',
+  pente_fino: 'econ',
+  ferrolho: 'econ',
+  aposta: 'econ',
+}
+
+function dominantArchetype(ids: string[]): string {
+  const counts = new Map<string, number>()
+  for (const id of ids) {
+    const a = ARCHETYPE[id] ?? 'outro'
+    counts.set(a, (counts.get(a) ?? 0) + 1)
+  }
+  let best = 'nenhum'
+  let bestCount = 0
+  for (const [a, c] of counts) {
+    if (c > bestCount) {
+      best = a
+      bestCount = c
+    }
+  }
+  return best
+}
+
+export function testT6Diversity(config: RunConfig, n: number): SanityResult {
+  const winners = seeds(n)
+    .map((s) => simulateRun(config, s, synergyStrategy))
+    .filter((o) => o.status === 'won')
+
+  if (winners.length < 3) {
+    return { id: 'T6', name: 'diversidade', verdict: 'yellow', detail: `so ${winners.length} vitorias (poucas p/ medir)` }
+  }
+
+  const archetypes = new Set(winners.map((w) => dominantArchetype(w.finalActiveIds)))
+
+  // frequencia do modificador mais presente nas vitorias
+  const freq = new Map<string, number>()
+  for (const w of winners) {
+    for (const id of new Set(w.finalActiveIds)) freq.set(id, (freq.get(id) ?? 0) + 1)
+  }
+  const maxFreq = Math.max(0, ...freq.values())
+  const maxRatio = maxFreq / winners.length
+
+  let verdict: Verdict = 'green'
+  if (archetypes.size < 3 || maxRatio > 0.9) verdict = 'yellow'
+
+  return {
+    id: 'T6',
+    name: 'diversidade',
+    verdict,
+    detail: `${archetypes.size} arquetipos vencem; mod top em ${Math.round(maxRatio * 100)}% das vitorias`,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// T7 — solvencia economica (win-rate)
+// ---------------------------------------------------------------------------
+
+export function testT7WinRate(config: RunConfig, n: number): SanityResult {
+  const wins = seeds(n).filter((s) => simulateRun(config, s, synergyStrategy).status === 'won').length
+  const rate = wins / n
+
+  let verdict: Verdict = 'red'
+  if (rate >= 0.2 && rate <= 0.6) verdict = 'green'
+  else if (rate >= 0.05 && rate <= 0.8) verdict = 'yellow'
+
+  return {
+    id: 'T7',
+    name: 'win-rate',
+    verdict,
+    detail: `${Math.round(rate * 100)}% (alvo 20-60%)`,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Suites
 // ---------------------------------------------------------------------------
 
 export function runCheapSanitySuite(config: RunConfig, n: number): SanityResult[] {
   return [
-    testT2Multiplicative(config, n),
+    testT2Multiplicative(config),
     testT3CleanDeath(config, n),
     testT5Synergy(dominoBoard.declareTagVocabulary(), config.modifiers),
+    testT8Order(config),
+    testT9Determinism(config),
+  ]
+}
+
+export function runFullSanitySuite(config: RunConfig, n: number): SanityResult[] {
+  return [
+    testT2Multiplicative(config),
+    testT3CleanDeath(config, n),
+    testT4BreakingBuild(config),
+    testT5Synergy(dominoBoard.declareTagVocabulary(), config.modifiers),
+    testT6Diversity(config, n),
+    testT7WinRate(config, n),
     testT8Order(config),
     testT9Determinism(config),
   ]

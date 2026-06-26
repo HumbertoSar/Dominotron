@@ -121,10 +121,48 @@ export function simulateRun(config: RunConfig, seed: number, strategy: Strategy)
 // Estrategias de referencia
 // ---------------------------------------------------------------------------
 
+/** Joga UMA blind com uma colecao ativa fixa (sem loja) e devolve a pontuacao.
+ *  Base do synergy-climber e do T4: avalia o teto de uma build num limiar especifico. */
+export function scoreBlind(
+  config: RunConfig,
+  seed: number,
+  activeIds: string[],
+  blindIndex = 1,
+): number {
+  let run: RunState = {
+    ...createRun(config, seed),
+    blindIndex,
+    ownedModifierIds: [...activeIds],
+    activeModifierIds: [...activeIds],
+  }
+  run = playBlind(run, config, seed)
+  return run.roundScore
+}
+
 /** "Jogar limpo": greedy de base, ZERO modificadores, nunca compra (T3). */
 export const cleanStrategy: Strategy = {
   pick: (state) => dominoBoard.greedyBaseAgent(state),
   shop: (run) => run,
+}
+
+/** Sinergia: joga com o synergyAgent e compra/ativa o que a loja oferecer (T6/T7). */
+export const synergyStrategy: Strategy = {
+  pick: (state, active) =>
+    active.length > 0 && dominoBoard.synergyAgent
+      ? dominoBoard.synergyAgent(state, active)
+      : dominoBoard.greedyBaseAgent(state),
+  shop: (run, config, seed) => {
+    const offer = generateShopOffer(config, seed)
+    for (const id of offer.modifierIds) {
+      if (run.activeModifierIds.length >= config.slots) break
+      const bought = buyModifier(config, run, id)
+      if (!bought.ok) continue
+      run = bought.state
+      const activated = activateModifier(config, run, id)
+      if (activated.ok) run = activated.state
+    }
+    return run
+  },
 }
 
 /** Aquisicao aleatoria semeada: compra/ativa modificadores da oferta (T2). */

@@ -8,7 +8,7 @@ import type { SanityResult, Verdict } from './sanity'
 const ICON: Record<Verdict, string> = { green: '🟢', yellow: '🟡', red: '🔴' }
 
 /** Itens do MANTER: um 🔴 aqui significa "nem abre, volta pro config". */
-const KEEP = new Set(['T2', 'T3', 'T5'])
+const KEEP = new Set(['T2', 'T3', 'T4', 'T5'])
 
 function overallVerdict(results: SanityResult[]): { icon: string; note: string } {
   const keepRed = results.find((r) => KEEP.has(r.id) && r.verdict === 'red')
@@ -32,6 +32,5 @@ export function formatReportCard(configName: string, results: SanityResult[]): s
   }
   lines.push('')
   lines.push('-> manual pendente: T1 (reconhecivel?), T0 (divertido?)')
-  lines.push('-> automatizado pendente (Parte 2): T4 (build quebra), T6 (diversidade), T7 (win-rate)')
   return lines.join('\n')
 }

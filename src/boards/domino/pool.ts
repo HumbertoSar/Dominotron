@@ -126,8 +126,8 @@ export const DOMINO_POOL_TOPOLOGICAL: Modifier[] = [
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',
-    // A cada 5 pecas na cobra, dobra o multiplicador. Arquetipo "cobra longa".
-    trigger: { kind: 'snapshot', metric: 'chainLength', mod: 5, cmp: '==', value: 0 },
+    // A cada 3 pecas na cobra, dobra o multiplicador. Arquetipo "cobra longa".
+    trigger: { kind: 'snapshot', metric: 'chainLength', mod: 3, cmp: '==', value: 0 },
     effects: [{ op: 'mul_mult', args: [2] }],
   },
   {
@@ -233,7 +233,7 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',
-    // Duas duplas seguidas: dobra o mult na 2a.
+    // Duas duplas seguidas: triplica o mult na 2a.
     trigger: {
       kind: 'and',
       preds: [
@@ -241,7 +241,7 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
         { kind: 'memory_flag', field: 'prevWasDouble' },
       ],
     },
-    effects: [{ op: 'mul_mult', args: [2] }],
+    effects: [{ op: 'mul_mult', args: [3] }],
   },
   {
     id: 'mirror_engine',
@@ -249,9 +249,9 @@ export const DOMINO_POOL_MEMORY: Modifier[] = [
     rarity: 'rare',
     cost: 8,
     slotType: 'standard',
-    // Cada dupla ja jogada na rodada escala o mult em 1.2 (bola de neve de duplas).
+    // Cada dupla ja jogada na rodada escala o mult em 1.6 (bola de neve de duplas).
     trigger: { kind: 'always' },
-    effects: [{ op: 'mul_mult_pow', args: [1.2], memoryField: 'doubles' }],
+    effects: [{ op: 'mul_mult_pow', args: [1.6], memoryField: 'doubles' }],
   },
 ]
 

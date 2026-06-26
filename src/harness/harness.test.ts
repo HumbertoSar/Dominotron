@@ -80,9 +80,9 @@ describe('os sanity checks rodam e retornam vereditos', () => {
   })
 
   it('T2 e T3 retornam um veredito e um detalhe medido', () => {
-    const t2 = testT2Multiplicative(config, 12)
+    const t2 = testT2Multiplicative(config)
     const t3 = testT3CleanDeath(config, 12)
-    expect(t2.detail).toContain('p95/p50')
+    expect(t2.detail).toContain('teto mult/aditivo')
     expect(t3.detail).toContain('% da run')
   })
 })

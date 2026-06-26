@@ -52,7 +52,7 @@ as ops `_per` iterarem. `snapshot` (BoardQuery) expõe: `chainLength()`, `endsVa
 
 | id | default | análogo Balatro |
 |----|---------|-----------------|
-| `plays` | 8 | "hands" |
+| `plays` | 8 → **12** (calibrado M4) | "hands" |
 | `redraws` | 3 | "discards" |
 
 > Estes defaults são o ponto de partida de calibração. **T3 e T7 são quem os afinam.**
@@ -76,6 +76,15 @@ o teto por rodada fica em ~50–70 pontos e **não cresce** (mult sempre 1). Log
 ultrapassa por volta de `i ≈ 6–8`, ou seja **25–33% da run** — dentro da banda 25–45% de T3.
 **Calibre `base` (18) e `growth` (1.30) até T3 passar.** Não chute: rode o harness.
 
+> **Nota de calibração (M4 — rodada via harness, não chute).** O report-card com a fórmula
+> inicial reprovou: o jogo era invencível no fim (T4) e o motor não era de fato multiplicativo
+> (o teto multiplicativo empatava com o aditivo). Após varrer parâmetros, o config calibrado é:
+> **`growth` 1.30 → 1.12**, **`plays` 8 → 12** (cobra mais longa = a Serpente compõe), e reforço
+> dos ×mult: **`serpente`** dispara a cada **3** peças (era 5), **`mirror_engine`** escala **1.6**
+> por dupla (era 1.2), **`gemeos`** faz **×3** (era ×2). Resultado: **8/8 testes 🟢** (T2 teto
+> mult/aditivo 1.54x, T3 29%, T4 9.7x, T6 6 arquétipos, T7 26%). A tabela acima reflete a
+> fórmula inicial 1.30; com `growth` 1.12 a curva é bem mais suave.
+
 ## Pool inicial de modificadores (18)
 
 Núcleo portável + extensão topológica do dominó. Tipos: `+base`, `+mult`, `×mult` (`mul_mult`),
@@ -97,9 +106,9 @@ Núcleo portável + extensão topológica do dominó. Tipos: `+base`, `+mult`, `
 | `crescente` | Crescente | uncom | +mult | `value_sum > prev play value_sum` → `add_mult(2)` acum. na rodada | **syn** ordenação/tempo |
 | `economia_circular` | Economia Circular | uncom | econ | fim de rodada → `add_money(1)` por `redraw` não usado | jogo de juros |
 | `ferrolho` | Ferrolho | uncom | rule/econ | ao travar → `add_money(6)` + devolve 1 `play` | converte o "trancado" em recurso |
-| `mirror_engine` | Motor Espelho | rare | ×mult | cada `is_double` na rodada → próximas jogadas `mul_mult(1.2)` (escala) | **syn** duplas, estoura escala |
-| `serpente` | Serpente | rare | ×mult | `snapshot.chainLength() % 5 == 0` → `mul_mult(2)` | **syn topológica** cobra longa |
-| `gemeos` | Gêmeos | rare | ×mult | duas duplas seguidas → `mul_mult(2)` na 2ª | **syn** duplas |
+| `mirror_engine` | Motor Espelho | rare | ×mult | cada `is_double` na rodada → `mul_mult(1.6)` acum. (calibrado de 1.2) | **syn** duplas, estoura escala |
+| `serpente` | Serpente | rare | ×mult | `snapshot.chainLength() % 3 == 0` → `mul_mult(2)` (calibrado de 5) | **syn topológica** cobra longa |
+| `gemeos` | Gêmeos | rare | ×mult | duas duplas seguidas → `mul_mult(3)` na 2ª (calibrado de ×2) | **syn** duplas |
 | `aposta` | Aposta | rare | +mult | início de rodada `add_money(-3)`; jogada → `add_mult_per(money held, 1)` | escala arriscada por economia |
 
 > `ponta_dupla` (Ponta Dupla, common, +base): `both_ends_equal` → `add_base(5)` — incluir como
@@ -160,8 +169,8 @@ exponencial. É o equivalente-dominó de "esvaziar a mão pra farmar multiplicad
 ```jsonc
 {
   "board": "domino",
-  "resources": { "plays": 8, "redraws": 3 },
-  "thresholdCurve": { "base": 18, "growth": 1.30, "antes": 8, "blindsPerAnte": 3 },
+  "resources": { "plays": 12, "redraws": 3 },          // calibrado de 8 (M4)
+  "thresholdCurve": { "base": 18, "growth": 1.12, "antes": 8, "blindsPerAnte": 3 },  // growth calibrado de 1.30
   "economy": { "blindReward": { "small": 3, "big": 4, "boss": 5 },
                "interestPer": 5, "interestCap": 5,
                "prices": { "common": 4, "uncommon": 6, "rare": 8 } },
