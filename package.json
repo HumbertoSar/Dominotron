@@ -9,12 +9,16 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "play": "tsx src/cli/index.ts",
-    "harness": "tsx src/harness/index.ts"
+    "harness": "tsx src/harness/index.ts",
+    "suco": "vite src/presenter",
+    "build:suco": "vite build src/presenter --base=./ --outDir ../../dist/suco --emptyOutDir"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "jsdom": "^25.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "vite": "^5.4.11",
     "vitest": "^2.1.8"
   }
 }
