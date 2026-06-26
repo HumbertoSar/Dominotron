@@ -158,6 +158,20 @@ function isRoundOver(state: DominoState): boolean {
   return state.hand.length === 0 || legalActionsFor(state).length === 0
 }
 
+/** Redraw: descarta as pecas dadas e compra a mesma quantidade do saco (sem pontuar).
+ *  Custa 1 `redraw` (o RunManager decrementa). O board so muda mao/saco. */
+function redraw(state: DominoState, tileIds: string[]): DominoState {
+  const discardSet = new Set(tileIds)
+  const kept = state.hand.filter((t) => !discardSet.has(t.id))
+  const drawCount = state.hand.length - kept.length
+  const drawn = state.bag.slice(0, drawCount)
+  return {
+    ...state,
+    hand: [...kept, ...drawn],
+    bag: state.bag.slice(drawn.length),
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Agentes de referencia
 // ---------------------------------------------------------------------------
@@ -254,5 +268,5 @@ export const dominoBoard: BoardModule<DominoState, DominoAction> = {
   synergyAgent,
 }
 
-// Exporta as funcoes puras para testes diretos.
-export { applyAction, dealInit, legalActionsFor }
+// Exporta as funcoes puras para testes diretos e para a CLI (M5).
+export { applyAction, dealInit, legalActionsFor, redraw }
