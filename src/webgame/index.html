@@ -110,44 +110,129 @@
         color: var(--gold);
       }
 
-      /* snake */
-      .snake {
+      /* dominoes (pinos) */
+      .dom {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 2px;
+        background: #f3f3ee;
+        border: 2px solid #cfcfc6;
+        border-radius: 6px;
+        padding: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+      }
+      .face {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 1px;
+        width: 30px;
+        height: 30px;
+        padding: 2px;
+      }
+      .pip {
+        border-radius: 50%;
+        background: transparent;
+      }
+      .pip.on {
+        background: #1a1a1a;
+      }
+      .dom-bar {
+        align-self: stretch;
+        background: #1a1a1a;
+        opacity: 0.35;
+        border-radius: 1px;
+      }
+      /* dominó horizontal (cobra): barra vertical entre as metades */
+      .snake-dom:not(.double) .dom-bar {
+        width: 2px;
+      }
+      /* dominó vertical (mao) ou dupla atravessada: barra horizontal */
+      .hand-dom .dom-bar,
+      .snake-dom.double .dom-bar {
+        height: 2px;
+      }
+      .hand-dom,
+      .snake-dom.double {
+        flex-direction: column;
+      }
+
+      /* mao */
+      .hand {
+        display: flex;
+        gap: 0.5rem;
         flex-wrap: wrap;
-        background: rgba(255, 255, 255, 0.03);
+        justify-content: center;
+        margin: 0.4rem 0;
+      }
+      .hand-dom {
+        cursor: pointer;
+        transition: transform 0.12s ease;
+      }
+      .hand-dom.playable {
+        border-color: var(--green);
+        box-shadow: 0 0 0 1px var(--green), 0 0 12px rgba(34, 197, 94, 0.4);
+      }
+      .hand-dom.playable:hover {
+        transform: translateY(-4px);
+      }
+      .hand-dom.dim {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .hand-dom.selected {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 2px var(--gold);
+      }
+
+      /* cobra em zigue-zague */
+      .snake-board {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        background: rgba(20, 60, 30, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         border-radius: 0.6rem;
         padding: 0.7rem;
         margin-bottom: 0.8rem;
         min-height: 3rem;
       }
       .snake.empty {
+        display: flex;
         justify-content: center;
-        color: rgba(255, 255, 255, 0.4);
+        align-items: center;
+        background: rgba(20, 60, 30, 0.18);
+        border-radius: 0.6rem;
+        padding: 1.2rem;
+        margin-bottom: 0.8rem;
+        color: rgba(255, 255, 255, 0.45);
       }
-      .snake .end {
-        font-weight: 700;
+      .end-label {
         color: var(--gold);
+        font-size: 0.85rem;
+        white-space: nowrap;
       }
-      .chain {
+      .snake-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+      }
+      .snake-row {
         display: flex;
         align-items: center;
-        gap: 0.2rem;
-        flex-wrap: wrap;
+        gap: 0.15rem;
+        flex-wrap: nowrap;
       }
-      .chain-tile {
-        background: #e8e8e8;
-        color: #111;
-        padding: 0.1rem 0.4rem;
-        border-radius: 0.25rem;
-        font-weight: 700;
-        font-size: 0.85rem;
+      .snake-row.rev {
+        flex-direction: row-reverse;
       }
-      .link {
-        width: 6px;
-        height: 2px;
-        background: rgba(255, 255, 255, 0.3);
+      .connector {
+        width: 7px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 2px;
       }
 
       /* suco */
@@ -189,48 +274,6 @@
       .suco-final {
         font-size: 1.9rem;
         text-shadow: 0 0 14px currentColor;
-      }
-
-      /* hand */
-      .hand {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin: 0.4rem 0;
-      }
-      .tile {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        background: #efefef;
-        color: #111;
-        border: 3px solid transparent;
-        border-radius: 0.5rem;
-        padding: 0.5rem 0.6rem;
-        font-family: inherit;
-        font-weight: 800;
-        font-size: 1.25rem;
-        cursor: pointer;
-      }
-      .tile .bar {
-        width: 2px;
-        height: 1.4rem;
-        background: #111;
-        opacity: 0.5;
-      }
-      .tile.playable {
-        box-shadow: 0 0 0 2px var(--green), 0 0 14px rgba(34, 197, 94, 0.4);
-      }
-      .tile.playable:hover {
-        transform: translateY(-3px);
-      }
-      .tile.dim {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .tile.selected {
-        border-color: var(--gold);
       }
 
       .controls {
@@ -332,9 +375,8 @@
         color: var(--green);
         font-weight: 700;
       }
-      .mod-chip,
-      .tile {
-        cursor: pointer;
+      .mod-chip {
+        cursor: default;
       }
       .mod-chip[title]:hover {
         outline: 1px solid rgba(255, 255, 255, 0.3);

@@ -28,9 +28,9 @@ describe('GameUI (jsdom)', () => {
 
   it('renderiza a mao com 7 pecas clicaveis', () => {
     const root = mountGame()
-    expect(root.querySelectorAll('.tile')).toHaveLength(7)
+    expect(root.querySelectorAll('.hand-dom')).toHaveLength(7)
     // cobra vazia -> todas jogaveis
-    expect(root.querySelectorAll('.tile.playable').length).toBe(7)
+    expect(root.querySelectorAll('.hand-dom.playable').length).toBe(7)
   })
 
   it('clicar numa peca a joga: a cobra cresce e o placar sobe', () => {
@@ -38,15 +38,15 @@ describe('GameUI (jsdom)', () => {
     const score = () => Number(root.querySelector('.score')?.textContent?.trim().split('/')[0])
     expect(score()).toBe(0)
 
-    root.querySelector<HTMLElement>('.tile')!.click()
+    root.querySelector<HTMLElement>('.hand-dom')!.click()
 
-    expect(root.querySelector('.chain')).toBeTruthy() // a cobra apareceu
+    expect(root.querySelector('.snake-dom')).toBeTruthy() // a peca entrou na cobra
     expect(score()).toBeGreaterThan(0) // pontuou
   })
 
   it('jogar mostra o suco (Trace) — a revelacao sequencial comeca na hora', () => {
     const root = mountGame()
-    root.querySelector<HTMLElement>('.tile')!.click()
+    root.querySelector<HTMLElement>('.hand-dom')!.click()
     // o suco anima (1 passo por vez); ao menos o primeiro aparece sincronamente.
     expect(root.querySelectorAll('.suco-area .suco-step').length).toBeGreaterThan(0)
   })
@@ -61,7 +61,7 @@ describe('GameUI (jsdom)', () => {
         chooser.click()
         continue
       }
-      const tile = root.querySelector<HTMLElement>('.tile.playable')
+      const tile = root.querySelector<HTMLElement>('.hand-dom.playable')
       if (!tile) break
       tile.click()
     }
@@ -81,7 +81,7 @@ describe('GameUI (jsdom)', () => {
         chooser.click()
         continue
       }
-      const tile = root.querySelector<HTMLElement>('.tile.playable')
+      const tile = root.querySelector<HTMLElement>('.hand-dom.playable')
       if (!tile) break
       tile.click()
     }
