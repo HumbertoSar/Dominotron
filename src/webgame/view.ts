@@ -13,29 +13,61 @@ function tilePips(t: Tile): number {
   return t.low + t.high
 }
 
-function tileHtml(t: Tile, opts: { playable: boolean; selected: boolean }): string {
-  const cls = ['tile']
-  if (opts.playable) cls.push('playable')
-  else cls.push('dim')
+// Posicoes dos pinos num grid 3x3 (1..9), no padrao de dominó.
+const PIP_LAYOUT: Record<number, number[]> = {
+  0: [],
+  1: [5],
+  2: [1, 9],
+  3: [1, 5, 9],
+  4: [1, 3, 7, 9],
+  5: [1, 3, 5, 7, 9],
+  6: [1, 3, 4, 6, 7, 9],
+}
+
+/** Uma metade da peca, com os pinos (bolinhas) na cara. */
+function face(value: number): string {
+  const on = new Set(PIP_LAYOUT[value] ?? [])
+  let cells = ''
+  for (let i = 1; i <= 9; i++) cells += `<i class="pip${on.has(i) ? ' on' : ''}"></i>`
+  return `<span class="face">${cells}</span>`
+}
+
+/** Peca da mao: dominó VERTICAL com pinos, clicavel. */
+function handTileHtml(t: Tile, opts: { playable: boolean; selected: boolean }): string {
+  const cls = ['dom', 'hand-dom']
+  cls.push(opts.playable ? 'playable' : 'dim')
   if (opts.selected) cls.push('selected')
   return `<button class="${cls.join(' ')}" data-action="tile" data-tile="${t.id}" title="${tilePips(t)} pontos">
-    <span class="half">${t.low}</span><span class="bar"></span><span class="half">${t.high}</span>
+    ${face(t.low)}<span class="dom-bar"></span>${face(t.high)}
   </button>`
 }
 
+/** Peca na cobra: dominó HORIZONTAL; dupla fica ATRAVESSADA (perpendicular). */
+function snakeTileHtml(t: Tile): string {
+  const cls = ['dom', 'snake-dom']
+  if (t.low === t.high) cls.push('double')
+  return `<span class="${cls.join(' ')}">${face(t.low)}<span class="dom-bar"></span>${face(t.high)}</span>`
+}
+
+/** A cobra em ZIGUE-ZAGUE (boustrophedon): linhas alternam de direcao, como na mesa. */
 function chainHtml(v: GameView): string {
   if (v.chain.length === 0) {
     return `<div class="snake empty">cobra vazia — jogue qualquer peca para abrir</div>`
   }
-  const pieces = v.chain
-    .map((t) => `<span class="chain-tile">${t.low}|${t.high}</span>`)
-    .join('<span class="link"></span>')
+  const perRow = 7
+  const rows: string[] = []
+  for (let i = 0; i < v.chain.length; i += perRow) {
+    const slice = v.chain.slice(i, i + perRow)
+    const tiles = slice.map(snakeTileHtml).join('<span class="connector"></span>')
+    const reversed = (i / perRow) % 2 === 1
+    rows.push(`<div class="snake-row${reversed ? ' rev' : ''}">${tiles}</div>`)
+  }
   const left = v.ends ? v.ends[0] : '?'
   const right = v.ends ? v.ends[1] : '?'
-  return `<div class="snake">
-    <span class="end">⟨ ${left}</span>
-    <div class="chain">${pieces}</div>
-    <span class="end">${right} ⟩</span>
+  return `<div class="snake-board">
+    <span class="end-label">ponta ⟨ <b>${left}</b></span>
+    <div class="snake-rows">${rows.join('')}</div>
+    <span class="end-label"><b>${right}</b> ⟩ ponta</span>
   </div>`
 }
 
@@ -132,7 +164,7 @@ export class GameUI {
       .map((t) => {
         const playable = (v.playable[t.id]?.length ?? 0) > 0
         const selected = this.discardMode ? this.discardSel.has(t.id) : this.pendingTile === t.id
-        return tileHtml(t, { playable: this.discardMode ? true : playable, selected })
+        return handTileHtml(t, { playable: this.discardMode ? true : playable, selected })
       })
       .join('')
 
